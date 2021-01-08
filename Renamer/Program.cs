@@ -14,10 +14,9 @@ namespace Renamer
             //if (args == null || args[0] == "-?")
             //    PrintHelp();
 
-            var directory = @"D:\workspace\JPProject.IdentityServer4.SSO\tests";
-            var exceptions = ".git;.vs;.gitignore;.gitattributes;node_module";
-            var replace = "JPProject.Admin.Infra.Data";
-            var target = "JPProject.Admin.EntityFramework.Repository";
+            var directory = @"E:\workspace\EquinoxProjectRename";
+            var replace = "Equinox";
+            var target = "Thelema";
 
             //if (args[0].ToLower() == "--rootpath")
             //{
@@ -26,7 +25,7 @@ namespace Renamer
             //    target = args[3];
             //}
 
-            //Rename(directory, replace, target, ".git", ".vs", ".gitignore", ".gitattributes", "node_module");
+
 
             var fileWithCommand = Path.Combine(Environment.CurrentDirectory, "gitmv.bat");
             File.Delete(fileWithCommand);
@@ -40,6 +39,7 @@ namespace Renamer
             };
 
             GenerateGitMv(parameters, directory);
+            Rename(parameters, directory);
         }
 
         private static void GenerateGitMv(RenameParameters command, string directory)
@@ -110,7 +110,7 @@ namespace Renamer
             Console.WriteLine($"Found {files.Length} files in {directory}");
             foreach (var file in files)
             {
-                if (Path.GetExtension(file) != ".exe" && Path.GetExtension(file) != ".dll" && Path.GetExtension(file) != ".suo")
+                if (!parameters.FileExceptions.Any(a => a.ToUpper().Contains(Path.GetExtension(file).ToUpper())))
                 {
                     try
                     {
@@ -120,8 +120,6 @@ namespace Renamer
                             var newContent = content.Replace(parameters.Replace, parameters.Target);
                             File.WriteAllText(file, newContent, Encoding.Unicode);
                         }
-                        if (Path.GetFileName(file).Contains(parameters.Replace))
-                            File.Move(file, Path.Combine(Path.GetDirectoryName(file), Path.GetFileName(file).Replace(parameters.Replace, parameters.Target)));
                     }
                     catch (Exception e)
                     {
@@ -132,29 +130,6 @@ namespace Renamer
 
             }
 
-            var dirs = Directory.GetDirectories(directory);
-            foreach (var dir in dirs)
-            {
-                if (parameters.FolderExceptions.Any(a => Path.GetFileName(dir) == a))
-                    continue;
-                Rename(parameters, dir);
-                try
-                {
-                    var topFolder = dir.Substring(dir.LastIndexOf(Path.DirectorySeparatorChar)).Replace(Path.DirectorySeparatorChar.ToString(), "");
-                    if (topFolder.Contains(parameters.Replace))
-                    {
-                        var targetDir = dir.Substring(0, dir.LastIndexOf(Path.DirectorySeparatorChar));
-                        targetDir = Path.Combine(targetDir, topFolder.Replace(parameters.Replace, parameters.Target));
-                        if (!Directory.Exists(targetDir))
-                            Directory.Move(dir, targetDir);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Trouble with {dir}, issue:{e.Message}");
-
-                }
-            }
         }
     }
 
